@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cozy Corner Cafe ☕</title>
+
+<style>
+  :root {
+    --cream: #fff7e8;
+    --brown: #654735;
+    --pink: #f3c4b4;
+    --green: #728b65;
+    --card: #fffdf7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 14px;
+    font-family: "Trebuchet MS", Arial, sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+  }
+
+  main { max-width: 850px; margin: auto; }
+
+  header { text-align: center; margin-bottom: 22px; }
+
+  h1 { margin-bottom: 6px; font-size: 2rem; }
+  h2 { font-size: 1.1rem; }
+
+  .subtitle { color: #917864; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat, .panel {
+    background: var(--card);
+    border: 2px solid #eadbc5;
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .stat { text-align: center; }
+  .stat strong { display: block; font-size: 1.35rem; }
+
+  .cafe {
+    background: #ead6bb;
+    border-radius: 22px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .customer {
+    font-size: 4rem;
+    margin: 8px 0;
+  }
+
+  .order {
+    background: #fffdf7;
+    border-radius: 14px;
+    padding: 12px;
+    margin: 12px auto;
+    max-width: 400px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  button {
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 4px;
+    background: var(--green);
+    color: white;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+
+  button:hover { transform: translateY(-2px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .secondary { background: #b78568; }
+  .pink { background: #cf8c87; }
+
+  .drink-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .inventory {
+    line-height: 1.9;
+    background: #f7efdf;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  #message {
+    min-height: 48px;
+    font-weight: bold;
+    text-align: center;
+    margin: 12px 0;
+  }
+
+  .shop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #eadbc5;
+    padding: 8px 0;
+  }
+
+  .shop-item button { font-size: .85rem; }
+
+  footer { text-align: center; margin-top: 20px; color: #917864; }
+
+  @media (max-width: 560px) {
+    .panels { grid-template-columns: 1fr; }
+    .stat, .panel { padding: 12px; }
+    h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+
+<body>
+<main>
+  <header>
+    <h1>☕ Cozy Corner Café</h1>
+    <div class="subtitle">A little café, a lot of love 🌷</div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">🪙 Coins<strong id="coins">30</strong></div>
+    <div class="stat">⭐ Reputation<strong id="rep">0</strong></div>
+    <div class="stat">☕ Served<strong id="served">0</strong></div>
+  </section>
+
+  <section class="cafe">
+    <div>YOUR LITTLE CAFÉ</div>
+    <div class="customer" id="customer">🧑🏻‍🍳</div>
+    <h2 id="customerName">A customer is visiting!</h2>
+
+    <div class="order">
+      <div>Customer's order:</div>
+      <h2 id="order">☕ Coffee</h2>
+      <div id="orderHint">Make the right drink to earn coins!</div>
+    </div>
+
+    <div class="drink-buttons">
+      <button onclick="serve('coffee')">☕ Coffee</button>
+      <button onclick="serve('tea')" class="secondary">🍵 Tea</button>
+      <button onclick="serve('lemonade')" class="pink">🍋 Lemonade</button>
+    </div>
+
+    <div id="message" role="status">Welcome! Serve your first customer.</div>
+    <button onclick="newCustomer()">Next Customer ➜</button>
+  </section>
+
+  <div class="panels">
+    <section class="panel">
+      <h2>🌿 Your Pantry</h2>
+      <div class="inventory" id="inventory"></div>
+      <h2>🛍️ Restock ingredients</h2>
+      <div id="stockShop"></div>
+    </section>
+
+    <section class="panel">
+      <h2>✨ Café Upgrades</h2>
+      <p>Make your café more profitable!</p>
+      <div id="upgradeShop"></div>
+      <button class="pink" onclick="resetGame()">Reset Game</button>
+    </section>
+  </div>
+
+  <footer>Your cozy little corner of the world 🌼</footer>
+</main>
+
+<script>
+  const drinks = {
+    coffee:   { emoji: "☕", price: 8, ingredient: "beans" },
+    tea:      { emoji: "🍵", price: 6, ingredient: "tea" },
+    lemonade: { emoji: "🍋", price: 7, ingredient: "lemons" }
+  };
+
+  const customers = [
+    { name: "Mia", emoji: "👩🏻" },
+    { name: "Oliver", emoji: "👨🏽" },
+    { name: "Luna", emoji: "👩🏾" },
+    { name: "Kai", emoji: "🧑🏻" },
+    { name: "Sophie", emoji: "👩🏼‍🦰" }
+  ];
+
+  const stockInfo = {
+    beans:  { name: "Coffee beans", cost: 5, emoji: "🫘" },
+    tea:    { name: "Tea leaves", cost: 4, emoji: "🍃" },
+    lemons: { name: "Lemons", cost: 4, emoji: "🍋" }
+  };
+
+  const state = {
+    coins: 30,
+    rep: 0,
+    served: 0,
+    stock: { beans: 5, tea: 5, lemons: 5 },
+    upgrades: 0,
+    order: "coffee",
+    customer: null,
+    servedThisOrder: false
+  };
+
+  function save() {
+    localStorage.setItem("cozyCafeSave", JSON.stringify(state));
+  }
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("cozyCafeSave"));
+      if (!saved) return;
+
+      if (
+        typeof saved.coins !== "number" ||
+        typeof saved.rep !== "number" ||
+        typeof saved.served !== "number" ||
+        !saved.stock ||
+        !saved.upgrades ||
+        !Number.isFinite(saved.coins) ||
+        !Number.isFinite(saved.rep) ||
+        !Number.isFinite(saved.served) ||
+        !Number.isFinite(saved.upgrades) ||
+        saved.coins < 0 || saved.rep < 0 ||
+        saved.served < 0 || saved.upgrades < 0 ||
+        !Object.keys(stockInfo).every(k =>
+          Number.isInteger(saved.stock[k]) && saved.stock[k] >= 0
+        )
+      ) return;
+
+      Object.assign(state, saved);
+    } catch (e) {
+      console.log("Starting a new café save.");
+    }
+  }
+
+  function render() {
+    document.getElementById("coins").textContent = state.coins;
+    document.getElementById("rep").textContent = state.rep;
+    document.getElementById("served").textContent = state.served;
+
+    document.getElementById("customer").textContent =
+      state.customer.emoji;
+    document.getElementById("customerName").textContent =
+      state.customer.name + " is visiting!";
+
+    const drink = drinks[state.order];
+    document.getElementById("order").textContent =
+      drink.emoji + " " +
+      state.order[0].toUpperCase() + state.order.slice(1);
+
+    document.getElementById("orderHint").textContent =
+      state.servedThisOrder
+        ? "Order completed! Meet your next customer."
+        : "Reward: " + (drink.price + state.upgrades * 2) + " coins";
+
+    document.getElementById("inventory").innerHTML =
+      Object.entries(stockInfo).map(([key, item]) =>
+        `${item.emoji} ${item.name}: <strong>${state.stock[key]}</strong>`
+      ).join("<br>");
+
+    document.getElementById("stockShop").innerHTML =
+      Object.entries(stockInfo).map(([key, item]) => `
+        <div class="shop-item">
+          <span>${item.emoji} ${item.name}<br>
+          <small>${item.cost} coins each</small></span>
+          <button onclick="buyStock('${key}')"
+            ${state.coins < item.cost ? "disabled" : ""}>Buy +1</button>
+        </div>
+      `).join("");
+
+    const cost = 40 + state.upgrades * 30;
+    document.getElementById("upgradeShop").innerHTML = `
+      <div class="shop-item">
+        <span>🪴 Cozy café upgrade<br>
+        <small>Bonus +2 coins per order</small></span>
+      </div>
+      <p>Level: ${state.upgrades}</p>
+      <p>Next upgrade: ${cost} coins</p>
+      <button onclick="upgradeCafe()"
+        ${state.coins < cost ? "disabled" : ""}>
+        Upgrade café
+      </button>
+    `;
+
+    document.querySelectorAll(".drink-buttons button").forEach(btn => {
+      btn.disabled = state.servedThisOrder;
+    });
+
+    save();
+  }
+
+  function setMessage(text) {
+    document.getElementById("message").textContent = text;
+  }
+
+  function newCustomer() {
+    state.customer =
+      customers[Math.floor(Math.random() * customers.length)];
+
+    const choices = Object.keys(drinks);
+    state.order = choices[Math.floor(Math.random() * choices.length)];
+    state.servedThisOrder = false;
+
+    setMessage("A new customer has arrived! What will you make?");
+    render();
+  }
+
+  function serve(drinkName) {
+    if (state.servedThisOrder) {
+      setMessage("This order is already completed. Next customer!");
+      return;
+    }
+
+    if (drinkName !== state.order) {
+      setMessage("Oops! That's not what they ordered. Try again! 💭");
+      return;
+    }
+
+    const ingredient = drinks[drinkName].ingredient;
+
+    if (state.stock[ingredient] <= 0) {
+      setMessage("You're out of ingredients! Restock your pantry first.");
+      return;
+    }
+
+    state.stock[ingredient]--;
+    const reward = drinks[drinkName].price + state.upgrades * 2;
+    state.coins += reward;
+    state.rep++;
+    state.served++;
+    state.servedThisOrder = true;
+
+    setMessage("Perfect! " + state.customer.name +
+      " loved it. +" + reward + " coins! 💛");
+    render();
+  }
+
+  function buyStock(key) {
+    const cost = stockInfo[key].cost;
+
+    if (state.coins < cost) {
+      setMessage("Not enough coins. Serve another customer first!");
+      return;
+    }
+
+    state.coins -= cost;
+    state.stock[key]++;
+    setMessage("Pantry restocked! " + stockInfo[key].name + " +1.");
+    render();
+  }
+
+  function upgradeCafe() {
+    const cost = 40 + state.upgrades * 30;
+
+    if (state.coins < cost) {
+      setMessage("Save more coins for your next café upgrade!");
+      return;
+    }
+
+    state.coins -= cost;
+    state.upgrades++;
+    setMessage("Your café feels cozier! Future orders earn bonus coins. 🌷");
+    render();
+  }
+
+  function resetGame() {
+    if (!confirm("Start over? Your saved café progress will be erased.")) {
+      return;
+    }
+
+    localStorage.removeItem("cozyCafeSave");
+    state.coins = 30;
+    state.rep = 0;
+    state.served = 0;
+    state.stock = { beans: 5, tea: 5, lemons: 5 };
+    state.upgrades = 0;
+    state.servedThisOrder = false;
+    newCustomer();
+  }
+
+  load();
+  newCustomer();
+</script>
+</body>
+</html>
